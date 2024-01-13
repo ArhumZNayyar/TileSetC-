@@ -17,13 +17,15 @@
 #define ID_TRANSPARENT_CHECKBOX 7
 #define ID_APP_GUI_TITLE 100
 #define ID_LABEL 101
+#define ID_STATUS_LABEL 102
 
 // Global Variables:
 HINSTANCE hInst;                                // current instance
 WCHAR szTitle[MAX_LOADSTRING];                  // The title bar text
 WCHAR szWindowClass[MAX_LOADSTRING];            // the main window class name
 HWND hBrowseButton, hGenerateButton, hTextBox,
-hTileWidthTextbox, hTileHeightTextbox, hOutputName, hTransparentCheckbox;
+hTileWidthTextbox, hTileHeightTextbox, hOutputName,
+hTransparentCheckbox, hStatusLabel;
 BOOL useTransparency = false;
 
 
@@ -40,8 +42,6 @@ int APIENTRY wWinMain(_In_ HINSTANCE hInstance,
 {
     UNREFERENCED_PARAMETER(hPrevInstance);
     UNREFERENCED_PARAMETER(lpCmdLine);
-
-    // TODO: Place code here.
 
     // Initialize global strings
     LoadStringW(hInstance, IDS_APP_TITLE, szTitle, MAX_LOADSTRING);
@@ -144,7 +144,7 @@ BOOL InitInstance(HINSTANCE hInstance, int nCmdShow)
     CreateWindow(
         L"STATIC", L"Folder Path:",
         WS_VISIBLE | WS_CHILD,
-        135, 32, 100, 20,
+        135, 32, 80, 20,
         hWnd, (HMENU)ID_LABEL, hInstance, NULL);
 
     hTextBox = CreateWindow(
@@ -156,13 +156,13 @@ BOOL InitInstance(HINSTANCE hInstance, int nCmdShow)
     CreateWindow(
         L"STATIC", L"Output File Name:",
         WS_VISIBLE | WS_CHILD,
-        10, 95, 130, 20,
+        10, 95, 125, 20,
         hWnd, (HMENU)ID_LABEL, hInstance, NULL);
 
     CreateWindow(
         L"STATIC", L".png",
         WS_VISIBLE | WS_CHILD,
-        210, 110, 50, 20,
+        210, 110, 35, 20,
         hWnd, (HMENU)ID_LABEL, hInstance, NULL);
 
     hOutputName = CreateWindow(
@@ -198,14 +198,20 @@ BOOL InitInstance(HINSTANCE hInstance, int nCmdShow)
     hTransparentCheckbox = CreateWindow(
         L"BUTTON", L"Transparent?",
         WS_VISIBLE | WS_CHILD | BS_CHECKBOX,
-        10, 205, 150, 20,
+        10, 205, 110, 20,
         hWnd, (HMENU)ID_TRANSPARENT_CHECKBOX, hInstance, NULL);
 
     hGenerateButton = CreateWindow(
         L"BUTTON", L"Generate Tileset",
         WS_TABSTOP | WS_VISIBLE | WS_CHILD | BS_DEFPUSHBUTTON,
-        10, 220, 120, 30,
+        10, 240, 120, 30,
         hWnd, (HMENU)ID_GENERATE_BUTTON, hInstance, NULL);
+
+    hStatusLabel = CreateWindow(
+        L"STATIC", L"Waiting...",
+        WS_VISIBLE | WS_CHILD,
+        10, 275, 85, 20, hWnd, (HMENU)ID_STATUS_LABEL, hInstance, NULL);
+
 
     ShowWindow(hWnd, nCmdShow);
     UpdateWindow(hWnd);
@@ -290,6 +296,7 @@ LRESULT CALLBACK WndProc(HWND hWnd, UINT message, WPARAM wParam, LPARAM lParam)
             }
             case ID_GENERATE_BUTTON:
             {
+                SetWindowText(hStatusLabel, L"Building...");
                 wchar_t folderPath[260];
                 wchar_t fileName[260];
                 wchar_t tileWidthStr[10];
@@ -312,6 +319,8 @@ LRESULT CALLBACK WndProc(HWND hWnd, UINT message, WPARAM wParam, LPARAM lParam)
 
                 Tileset tileset;
                 tileset.CreateTileset(strFolderPath, strFileName, tileWidth, tileHeight, useTransparency);
+                Sleep(1500);
+                SetWindowText(hStatusLabel, L"Done...");
             }
                 break;
             case IDM_ABOUT:
@@ -329,7 +338,6 @@ LRESULT CALLBACK WndProc(HWND hWnd, UINT message, WPARAM wParam, LPARAM lParam)
         {
             PAINTSTRUCT ps;
             HDC hdc = BeginPaint(hWnd, &ps);
-            // TODO: Add any drawing code that uses hdc here...
             EndPaint(hWnd, &ps);
         }
         break;
