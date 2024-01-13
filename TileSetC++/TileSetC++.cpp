@@ -168,7 +168,7 @@ BOOL InitInstance(HINSTANCE hInstance, int nCmdShow)
     hOutputName = CreateWindow(
         L"EDIT", L"Tileset1",
         WS_CHILD | WS_VISIBLE | WS_BORDER | ES_LEFT,
-        10, 110, 200, 30,
+        10, 110, 200, 20,
         hWnd, (HMENU)ID_OUTPUT_NAME, hInstance, NULL);
 
     CreateWindow(
@@ -232,8 +232,23 @@ BOOL InitInstance(HINSTANCE hInstance, int nCmdShow)
 //
 LRESULT CALLBACK WndProc(HWND hWnd, UINT message, WPARAM wParam, LPARAM lParam)
 {
+    HBRUSH hbrBkgnd = CreateSolidBrush(RGB(45, 45, 48));
     switch (message)
     {
+    case WM_CTLCOLORSTATIC: {
+        HDC hdcStatic = (HDC)wParam;
+        SetTextColor(hdcStatic, RGB(255, 255, 255)); // Optional: set text color
+        SetBkColor(hdcStatic, RGB(45, 45, 48));
+        return (LRESULT)hbrBkgnd;
+    }
+
+    case WM_ERASEBKGND: {
+        HDC hdc = (HDC)wParam;
+        RECT rect;
+        GetClientRect(hWnd, &rect);
+        FillRect(hdc, &rect, hbrBkgnd);
+        return 1;
+    }
     case WM_COMMAND:
         {
             int wmId = LOWORD(wParam);
@@ -356,6 +371,7 @@ LRESULT CALLBACK WndProc(HWND hWnd, UINT message, WPARAM wParam, LPARAM lParam)
         }
         break;
     case WM_DESTROY:
+        DeleteObject(hbrBkgnd);
         PostQuitMessage(0);
         break;
     default:
