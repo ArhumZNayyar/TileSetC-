@@ -13,12 +13,15 @@
 #define ID_TEXTBOX 3
 #define ID_TILE_WIDTH_TEXTBOX 4
 #define ID_TILE_HEIGHT_TEXTBOX 5
+#define ID_OUTPUT_NAME 6
+#define ID_APP_GUI_TITLE 100
+#define ID_LABEL 101
 
 // Global Variables:
 HINSTANCE hInst;                                // current instance
 WCHAR szTitle[MAX_LOADSTRING];                  // The title bar text
 WCHAR szWindowClass[MAX_LOADSTRING];            // the main window class name
-HWND hBrowseButton, hGenerateButton, hTextBox, hTileWidthTextbox, hTileHeightTextbox;
+HWND hBrowseButton, hGenerateButton, hTextBox, hTileWidthTextbox, hTileHeightTextbox, hOutputName;
 
 
 // Forward declarations of functions included in this code module:
@@ -115,43 +118,85 @@ BOOL InitInstance(HINSTANCE hInstance, int nCmdShow)
 {
     hInst = hInstance; // Store instance handle in our global variable
 
-    HWND hWnd = CreateWindowW(szWindowClass, szTitle, WS_OVERLAPPEDWINDOW,
-        CW_USEDEFAULT, 0, CW_USEDEFAULT, 0, nullptr, nullptr, hInstance, nullptr);
+    HWND hWnd = CreateWindowW(szWindowClass, szTitle, WS_OVERLAPPED | WS_CAPTION | WS_SYSMENU | WS_MINIMIZEBOX,
+        CW_USEDEFAULT, 0, 575, 400, nullptr, nullptr, hInstance, nullptr);
 
     if (!hWnd)
     {
         return FALSE;
     }
 
+    CreateWindow(
+        L"STATIC", L"Tileset Generator by Arhum Z. Nayyar",
+        WS_VISIBLE | WS_CHILD,
+        10, 5, 250, 20,
+        hWnd, (HMENU)ID_APP_GUI_TITLE, hInstance, NULL);
+
     hBrowseButton = CreateWindow(
         L"BUTTON", L"Browse Folder",
         WS_TABSTOP | WS_VISIBLE | WS_CHILD | BS_DEFPUSHBUTTON,
-        10, 10, 120, 30,
+        10, 50, 120, 30,
         hWnd, (HMENU)ID_BROWSE_BUTTON, hInstance, NULL);
 
-    hGenerateButton = CreateWindow(
-        L"BUTTON", L"Generate Tileset",
-        WS_TABSTOP | WS_VISIBLE | WS_CHILD | BS_DEFPUSHBUTTON,
-        140, 10, 120, 30,
-        hWnd, (HMENU)ID_GENERATE_BUTTON, hInstance, NULL);
+    CreateWindow(
+        L"STATIC", L"Folder Path:",
+        WS_VISIBLE | WS_CHILD,
+        135, 32, 100, 20,
+        hWnd, (HMENU)ID_LABEL, hInstance, NULL);
 
     hTextBox = CreateWindow(
         L"EDIT", L"",
         WS_CHILD | WS_VISIBLE | WS_BORDER | ES_LEFT,
-        270, 10, 200, 30,
+        135, 50, 385, 30,
         hWnd, (HMENU)ID_TEXTBOX, hInstance, NULL);
+
+    CreateWindow(
+        L"STATIC", L"Output File Name:",
+        WS_VISIBLE | WS_CHILD,
+        10, 95, 130, 20,
+        hWnd, (HMENU)ID_LABEL, hInstance, NULL);
+
+    CreateWindow(
+        L"STATIC", L".png",
+        WS_VISIBLE | WS_CHILD,
+        210, 110, 50, 20,
+        hWnd, (HMENU)ID_LABEL, hInstance, NULL);
+
+    hOutputName = CreateWindow(
+        L"EDIT", L"Tileset1",
+        WS_CHILD | WS_VISIBLE | WS_BORDER | ES_LEFT,
+        10, 110, 200, 30,
+        hWnd, (HMENU)ID_OUTPUT_NAME, hInstance, NULL);
+
+    CreateWindow(
+        L"STATIC", L"Tile Width:",
+        WS_VISIBLE | WS_CHILD,
+        10, 165, 75, 20,
+        hWnd, (HMENU)ID_LABEL, hInstance, NULL);
 
     hTileWidthTextbox = CreateWindow(
         L"EDIT", L"16",
         WS_CHILD | WS_VISIBLE | WS_BORDER | ES_LEFT | ES_NUMBER,
-        10, 50, 50, 20,
+        10, 180, 50, 20,
         hWnd, (HMENU)ID_TILE_WIDTH_TEXTBOX, hInstance, NULL);
+
+    CreateWindow(
+        L"STATIC", L"Tile Height:",
+        WS_VISIBLE | WS_CHILD,
+        90, 165, 75, 20,
+        hWnd, (HMENU)ID_LABEL, hInstance, NULL);
 
     hTileHeightTextbox = CreateWindow(
         L"EDIT", L"16",
         WS_CHILD | WS_VISIBLE | WS_BORDER | ES_LEFT | ES_NUMBER,
-        70, 50, 50, 20,
+        90, 180, 50, 20,
         hWnd, (HMENU)ID_TILE_HEIGHT_TEXTBOX, hInstance, NULL);
+
+    hGenerateButton = CreateWindow(
+        L"BUTTON", L"Generate Tileset",
+        WS_TABSTOP | WS_VISIBLE | WS_CHILD | BS_DEFPUSHBUTTON,
+        10, 220, 120, 30,
+        hWnd, (HMENU)ID_GENERATE_BUTTON, hInstance, NULL);
 
     ShowWindow(hWnd, nCmdShow);
     UpdateWindow(hWnd);
@@ -230,22 +275,27 @@ LRESULT CALLBACK WndProc(HWND hWnd, UINT message, WPARAM wParam, LPARAM lParam)
             case ID_GENERATE_BUTTON:
             {
                 wchar_t folderPath[260];
+                wchar_t fileName[260];
                 wchar_t tileWidthStr[10];
                 wchar_t tileHeightStr[10];
 
                 GetWindowText(hTextBox, folderPath, 260);
+                GetWindowText(hOutputName, fileName, 260);
                 GetWindowText(hTileWidthTextbox, tileWidthStr, 10);
                 GetWindowText(hTileHeightTextbox, tileHeightStr, 10);
 
                 std::wstring wsFolderPath(folderPath);
                 std::string strFolderPath(wsFolderPath.begin(), wsFolderPath.end());
 
+                std::wstring wsFileName(fileName);
+                std::string strFileName(wsFileName.begin(), wsFileName.end());
+
                 // Convert tile dimensions to integers.
                 int tileWidth = _wtoi(tileWidthStr);
                 int tileHeight = _wtoi(tileHeightStr);
 
                 Tileset tileset;
-                tileset.CreateTileset(strFolderPath, tileWidth, tileHeight);
+                tileset.CreateTileset(strFolderPath, strFileName, tileWidth, tileHeight);
             }
                 break;
             case IDM_ABOUT:

@@ -12,15 +12,7 @@
 
 class Tileset {
 public:
-
-    std::string ConvertPathForOpenCV(const std::string& path) {
-        std::string convertedPath = path;
-        std::replace(convertedPath.begin(), convertedPath.end(), '\\', '/');
-        return convertedPath;
-    }
-    
-
-    void CreateTileset(const std::string& folderPath, int tileWidth, int tileHeight) {
+    void CreateTileset(const std::string& folderPath, const std::string& fileName, int tileWidth, int tileHeight) {
         std::vector<cv::Mat> images;
         if (!std::filesystem::exists(folderPath) || !std::filesystem::is_directory(folderPath)) {
             std::cerr << "Directory does not exist or is not accessible: " << folderPath << std::endl;
@@ -65,7 +57,7 @@ public:
             cv::resize(images[i], targetROI, targetROI.size());
         }
         std::cout << "IMAGE SIZE: " << images.size();
-        cv::imwrite("C:\\tileset.png", tileset);
+        cv::imwrite(fileName, tileset);
     }
 };
 
