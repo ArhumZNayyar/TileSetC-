@@ -296,7 +296,6 @@ LRESULT CALLBACK WndProc(HWND hWnd, UINT message, WPARAM wParam, LPARAM lParam)
             }
             case ID_GENERATE_BUTTON:
             {
-                SetWindowText(hStatusLabel, L"Building...");
                 wchar_t folderPath[260];
                 wchar_t fileName[260];
                 wchar_t tileWidthStr[10];
@@ -309,17 +308,32 @@ LRESULT CALLBACK WndProc(HWND hWnd, UINT message, WPARAM wParam, LPARAM lParam)
 
                 std::wstring wsFolderPath(folderPath);
                 std::string strFolderPath(wsFolderPath.begin(), wsFolderPath.end());
+                if (strFolderPath.empty()) {
+                    MessageBox(hWnd, L"Invalid Directory", L"ERROR", MB_ICONERROR);
+                    break;
+                }
 
                 std::wstring wsFileName(fileName);
                 std::string strFileName(wsFileName.begin(), wsFileName.end());
+                if (strFileName.empty()) {
+                    MessageBox(hWnd, L"Invalid Filename", L"ERROR", MB_ICONERROR);
+                    break;
+                }
 
                 // Convert tile dimensions to integers.
                 int tileWidth = _wtoi(tileWidthStr);
                 int tileHeight = _wtoi(tileHeightStr);
 
+                if (wcslen(tileWidthStr) == 0 || tileWidth <= 0 || wcslen(tileHeightStr) == 0 || tileHeight <= 0) {
+                    MessageBox(hWnd, L"Invalid Tile Size (<= 0 or Empty)", L"ERROR", MB_ICONERROR);
+                    break;
+                }
+
+
+                SetWindowText(hStatusLabel, L"Building...");
                 Tileset tileset;
                 tileset.CreateTileset(strFolderPath, strFileName, tileWidth, tileHeight, useTransparency);
-                Sleep(1500);
+                Sleep(1100);
                 SetWindowText(hStatusLabel, L"Done...");
             }
                 break;
