@@ -14,6 +14,7 @@
 #define ID_TILE_WIDTH_TEXTBOX 4
 #define ID_TILE_HEIGHT_TEXTBOX 5
 #define ID_OUTPUT_NAME 6
+#define ID_TRANSPARENT_CHECKBOX 7
 #define ID_APP_GUI_TITLE 100
 #define ID_LABEL 101
 
@@ -21,7 +22,9 @@
 HINSTANCE hInst;                                // current instance
 WCHAR szTitle[MAX_LOADSTRING];                  // The title bar text
 WCHAR szWindowClass[MAX_LOADSTRING];            // the main window class name
-HWND hBrowseButton, hGenerateButton, hTextBox, hTileWidthTextbox, hTileHeightTextbox, hOutputName;
+HWND hBrowseButton, hGenerateButton, hTextBox,
+hTileWidthTextbox, hTileHeightTextbox, hOutputName, hTransparentCheckbox;
+BOOL useTransparency = false;
 
 
 // Forward declarations of functions included in this code module:
@@ -192,6 +195,12 @@ BOOL InitInstance(HINSTANCE hInstance, int nCmdShow)
         90, 180, 50, 20,
         hWnd, (HMENU)ID_TILE_HEIGHT_TEXTBOX, hInstance, NULL);
 
+    hTransparentCheckbox = CreateWindow(
+        L"BUTTON", L"Transparent?",
+        WS_VISIBLE | WS_CHILD | BS_CHECKBOX,
+        10, 205, 150, 20,
+        hWnd, (HMENU)ID_TRANSPARENT_CHECKBOX, hInstance, NULL);
+
     hGenerateButton = CreateWindow(
         L"BUTTON", L"Generate Tileset",
         WS_TABSTOP | WS_VISIBLE | WS_CHILD | BS_DEFPUSHBUTTON,
@@ -272,6 +281,13 @@ LRESULT CALLBACK WndProc(HWND hWnd, UINT message, WPARAM wParam, LPARAM lParam)
                 CoUninitialize();
                 break;
             }
+            case ID_TRANSPARENT_CHECKBOX:
+            {
+                useTransparency = !useTransparency;
+                // Update the checkbox state.
+                SendMessage(hTransparentCheckbox, BM_SETCHECK, useTransparency ? BST_CHECKED : BST_UNCHECKED, 0);
+                break;
+            }
             case ID_GENERATE_BUTTON:
             {
                 wchar_t folderPath[260];
@@ -295,7 +311,7 @@ LRESULT CALLBACK WndProc(HWND hWnd, UINT message, WPARAM wParam, LPARAM lParam)
                 int tileHeight = _wtoi(tileHeightStr);
 
                 Tileset tileset;
-                tileset.CreateTileset(strFolderPath, strFileName, tileWidth, tileHeight);
+                tileset.CreateTileset(strFolderPath, strFileName, tileWidth, tileHeight, useTransparency);
             }
                 break;
             case IDM_ABOUT:
